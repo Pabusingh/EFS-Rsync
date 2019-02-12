@@ -14,13 +14,11 @@ pipeline {
         choice(
             name: 'ENVIRONMENT',
             choices:"\nDEV\nQA\n",
-            description: "Choose the environment whose EFS needs to be restored."
-        ),
+            description: "Choose the environment whose EFS needs to be restored.")
         choice(
             name: 'PRODUCT',
             choices:"\nDOCUMENTARY\nSTREAM\n",
-            description: "Choose the product whose EFS needs to be restored."
-        )
+            description: "Choose the product whose EFS needs to be restored.")
     }
 
     stages {
@@ -34,7 +32,7 @@ pipeline {
                         
                         echo "Environment:- $env"
                         echo "Product:- $product"
-                        
+
                         SECRETS_PATH="${env}/${product}/efs-rsync"
 
                         # This setting is for secrets manager in the below aws lambda
