@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    environment {
+        LAMBDA_FUNC_NAME        = "efs-rysnc"
+    }
+
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices:"\nDEV\nQA\n",
+            description: "Choose the environment whose EFS needs to be restored."
+        ),
+        choice(
+            name: 'PRODUCT',
+            choices:"\nDOCUMENTARY\nSTREAM\n",
+            description: "Choose the product whose EFS needs to be restored."
+        )
+    }
+
+    stages {
+        stage('Stage') {
+            
+            steps {
+                
+                    sh '''#!/bin/bash
+                        env=`echo "$ENVIRONMENT" | awk '{print tolower($0)}'`
+                        product=`echo "$PRODUCT" | awk '{print tolower($0)}'`
+                        
+                        echo "Environment:- $env"
+                        echo "Product:- $product"
+                        
+                        SECRETS_PATH="${env}/${product}/efs-rsync"
+
+                        # This setting is for secrets manager in the below aws lambda
+                        # command for retrieving secrets from environment specific region                        
+
+                        # Invoke lambda function which exists in ireland region
+                        aws lambda invoke --function-name ${LAMBDA_FUNC_NAME} \
+                        --region us-east-1 \
+                        --log-type Tail \
+                        --payload `aws --output json secretsmanager get-secret-value --secret-id ${SECRETS_PATH} | jq -r '.SecretString'` \
+                         outputfile.txt | jq -r '.LogResult' | base64 --decode
+
+                    '''
+                
+            }
+        }
+    }
+}
