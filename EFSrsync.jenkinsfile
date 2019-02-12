@@ -42,7 +42,7 @@ pipeline {
                         aws lambda invoke --function-name ${LAMBDA_FUNC_NAME} \
                         --region us-east-1 \
                         --log-type Tail \
-                        --payload `aws --output json secretsmanager get-secret-value --secret-id ${SECRETS_PATH} | jq -r '.SecretString'` \
+                        --payload `aws --output json secretsmanager get-secret-value --secret-id ${SECRETS_PATH} --region us-east-1 | jq -r '.SecretString'` \
                          outputfile.txt | jq -r '.LogResult' | base64 --decode
 
                     '''
